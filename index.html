@@ -42,6 +42,32 @@
     margin: 0 auto;
   }
 
+  /* ---------- Sync status bar ---------- */
+  .sync-bar{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    font-size:12px;
+    color: var(--ink-soft);
+    margin-bottom: 18px;
+    padding: 6px 14px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    max-width: fit-content;
+    margin-left:auto;
+    margin-right:auto;
+  }
+  .sync-dot{
+    width:8px;height:8px;border-radius:50%;
+    background: var(--sage);
+    flex-shrink:0;
+  }
+  .sync-dot.syncing{ background: var(--gold); animation: pulse 1s infinite; }
+  .sync-dot.error{ background: var(--danger); }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
   /* ---------- Header ---------- */
   header{
     text-align:center;
@@ -263,6 +289,10 @@
     font-family:'Noto Sans SC', sans-serif;
     font-size:13px;
   }
+  .add-form button:disabled{
+    opacity:0.5;
+    cursor:not-allowed;
+  }
 
   /* dislike section special bg */
   .danger-zone{
@@ -294,6 +324,27 @@
     margin-bottom:4px;
   }
 
+  .toast{
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--ink);
+    color: #fff8ec;
+    padding: 9px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    opacity: 0;
+    pointer-events:none;
+    transition: all .25s ease;
+    z-index: 100;
+  }
+  .toast.show{
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .toast.error{ background: var(--danger); }
+
   @media (max-width: 480px){
     .card-grid{ grid-template-columns: 1fr; }
     h1{ letter-spacing: 0.04em; }
@@ -303,12 +354,18 @@
 <body>
 <div class="wrap">
 
+  <div class="sync-bar" id="syncBar">
+    <span class="sync-dot" id="syncDot"></span>
+    <span id="syncText">已连接云端</span>
+  </div>
+
   <header>
     <div class="seal">私藏 · 备忘</div>
     <h1>淼<span>淼</span>小档案</h1>
     <div class="subtitle">悄悄记下，慢慢靠近</div>
     <div class="dates-row" id="birthdayRow">
-      <!-- filled by JS -->
+      <div class="date-chip">🎂 <b>阳历 6.15</b></div>
+      <div class="date-chip">🌙 <b>农历 5.2</b></div>
     </div>
   </header>
 
@@ -406,80 +463,27 @@
 
   <footer>
     <span class="brush">愿你被温柔以待</span>
-    数据保存在本设备浏览器中，刷新不会丢失
+    数据已同步到云端，换设备打开同一个文件即可看到最新内容
   </footer>
 
 </div>
 
-<script>
-const STORAGE_KEY = 'miaomiao_profile_v1';
+<div class="toast" id="toast"></div>
 
-const DEFAULT_DATA = {
-  birthday: { solar: '阳历 6.15', lunar: '农历 5.2' },
-  like: [
-    '喜辣',
-    '粉贾斯汀比伯',
-    '暑假准备爬黄山',
-    '一点点至尊系列：最爱可可芭蕾（少糖，最多5分糖）',
-    '喜欢吃小龙虾',
-    '喜欢做饭，有个朋友做饭非常好吃',
-    '喜欢吃咸蛋黄肉粽、枣粽、豆沙粽',
-    '超喜欢抓娃娃',
-    '爱吃香菜'
-  ],
-  dislike: [
-    '不喜欢吃海鲜',
-    '不喜欢烟味',
-    '不吃芒果'
-  ],
-  pet: [
-    '蓝猫(12岁)：李灰灰',
-    '银渐层(3岁)：李富贵'
-  ],
-  plan: [
-    '6.23号去徐州',
-    '暑假准备爬黄山'
-  ],
-  places: [
-    '黑龙江',
-    '新疆',
-    '北京',
-    '天津'
-  ],
-  misc: [
-    '酒量少，叔叔奶奶喝的多，阿姨喝的少',
-    '6.17耳机坏了(应该是蓝牙耳机)'
-  ]
+<script>
+/* ============ Supabase 连接配置 ============ */
+const SUPABASE_URL = 'https://vlbdguleovswmchypadd.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_OEL6dIn9SIE1efzGPP99qA_qGD2nE_9';
+const TABLE = 'miaomiao_profile_records';
+
+const REST_URL = `${SUPABASE_URL}/rest/v1/${TABLE}`;
+const HEADERS = {
+  'apikey': SUPABASE_KEY,
+  'Authorization': `Bearer ${SUPABASE_KEY}`,
+  'Content-Type': 'application/json'
 };
 
-function loadData(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw) return JSON.parse(raw);
-  }catch(e){ console.warn('load failed', e); }
-  return JSON.parse(JSON.stringify(DEFAULT_DATA));
-}
-
-function saveData(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
-
-let data = loadData();
-
-function renderBirthday(){
-  const row = document.getElementById('birthdayRow');
-  row.innerHTML = `
-    <div class="date-chip">🎂 <b>${escapeHtml(data.birthday.solar)}</b></div>
-    <div class="date-chip">🌙 <b>${escapeHtml(data.birthday.lunar)}</b></div>
-  `;
-}
-
-function escapeHtml(str){
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
-
+const CATEGORIES = ['like', 'dislike', 'pet', 'plan', 'places', 'misc'];
 const CATEGORY_CLASS = {
   like: 'like',
   dislike: 'dislike',
@@ -489,6 +493,89 @@ const CATEGORY_CLASS = {
   misc: 'note-card'
 };
 
+// 本地数据缓存： { like: [{id, content}], dislike: [...], ... }
+let data = {};
+CATEGORIES.forEach(c => data[c] = []);
+
+let isOnline = true;
+
+/* ============ 工具函数 ============ */
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function showToast(msg, isError=false){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(() => { t.className = 'toast'; }, 2200);
+}
+
+function setSyncStatus(state, text){
+  const dot = document.getElementById('syncDot');
+  const label = document.getElementById('syncText');
+  dot.className = 'sync-dot' + (state === 'syncing' ? ' syncing' : state === 'error' ? ' error' : '');
+  label.textContent = text;
+}
+
+/* ============ 远程数据读写 ============ */
+async function fetchAll(){
+  setSyncStatus('syncing', '正在同步...');
+  try{
+    const res = await fetch(`${REST_URL}?select=*&order=sort_order.asc,id.asc`, {
+      headers: HEADERS
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const rows = await res.json();
+
+    CATEGORIES.forEach(c => data[c] = []);
+    rows.forEach(row => {
+      if(!data[row.category]) data[row.category] = [];
+      data[row.category].push({ id: row.id, content: row.content });
+    });
+
+    isOnline = true;
+    setSyncStatus('ok', '已同步云端');
+    renderAll();
+  }catch(err){
+    console.error('fetch failed', err);
+    isOnline = false;
+    setSyncStatus('error', '同步失败，检查网络');
+    showToast('无法连接云端数据库，请检查网络后刷新', true);
+  }
+}
+
+async function remoteAdd(category, content){
+  const res = await fetch(REST_URL, {
+    method: 'POST',
+    headers: { ...HEADERS, 'Prefer': 'return=representation' },
+    body: JSON.stringify({ category, content, sort_order: Date.now() })
+  });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const rows = await res.json();
+  return rows[0];
+}
+
+async function remoteUpdate(id, content){
+  const res = await fetch(`${REST_URL}?id=eq.${id}`, {
+    method: 'PATCH',
+    headers: HEADERS,
+    body: JSON.stringify({ content })
+  });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+}
+
+async function remoteDelete(id){
+  const res = await fetch(`${REST_URL}?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: HEADERS
+  });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+}
+
+/* ============ 渲染 ============ */
 function render(category){
   const listEl = document.getElementById('list-' + category);
   const countEl = document.getElementById('count-' + category);
@@ -500,15 +587,15 @@ function render(category){
     return;
   }
 
-  listEl.innerHTML = items.map((text, idx) => {
+  listEl.innerHTML = items.map((item, idx) => {
     const cls = CATEGORY_CLASS[category] || '';
     const rot = category === 'misc' ? (idx % 2 === 0 ? '-0.6deg' : '0.6deg') : '0deg';
     return `
-      <div class="item-card ${cls}" style="--rot:${rot}" data-cat="${category}" data-idx="${idx}">
-        <div class="item-text" id="text-${category}-${idx}">${escapeHtml(text)}</div>
+      <div class="item-card ${cls}" style="--rot:${rot}" data-cat="${category}" data-id="${item.id}">
+        <div class="item-text" id="text-${category}-${item.id}">${escapeHtml(item.content)}</div>
         <div class="item-actions">
-          <button class="ic-btn edit" title="编辑" onclick="startEdit('${category}', ${idx})">✎</button>
-          <button class="ic-btn del" title="删除" onclick="deleteItem('${category}', ${idx})">✕</button>
+          <button class="ic-btn edit" title="编辑" onclick="startEdit('${category}', ${item.id})">✎</button>
+          <button class="ic-btn del" title="删除" onclick="deleteItem('${category}', ${item.id})">✕</button>
         </div>
       </div>
     `;
@@ -516,10 +603,10 @@ function render(category){
 }
 
 function renderAll(){
-  renderBirthday();
-  Object.keys(CATEGORY_CLASS).forEach(render);
+  CATEGORIES.forEach(render);
 }
 
+/* ============ 交互 ============ */
 function toggleForm(category){
   const form = document.getElementById('form-' + category);
   form.classList.toggle('open');
@@ -528,52 +615,82 @@ function toggleForm(category){
   }
 }
 
-function addItem(category){
+async function addItem(category){
   const input = document.getElementById('input-' + category);
   const val = input.value.trim();
   if(!val) return;
-  if(!data[category]) data[category] = [];
-  data[category].push(val);
-  saveData();
-  input.value = '';
-  document.getElementById('form-' + category).classList.remove('open');
-  render(category);
+
+  input.disabled = true;
+  try{
+    const row = await remoteAdd(category, val);
+    data[category].push({ id: row.id, content: row.content });
+    input.value = '';
+    document.getElementById('form-' + category).classList.remove('open');
+    render(category);
+    showToast('已添加并同步');
+  }catch(err){
+    console.error(err);
+    showToast('添加失败，请检查网络', true);
+  }finally{
+    input.disabled = false;
+  }
 }
 
-function deleteItem(category, idx){
+async function deleteItem(category, id){
   if(!confirm('确定要删除这条记录吗？')) return;
-  data[category].splice(idx, 1);
-  saveData();
-  render(category);
+  try{
+    await remoteDelete(id);
+    data[category] = data[category].filter(it => it.id !== id);
+    render(category);
+    showToast('已删除');
+  }catch(err){
+    console.error(err);
+    showToast('删除失败，请检查网络', true);
+  }
 }
 
-function startEdit(category, idx){
-  const textEl = document.getElementById(`text-${category}-${idx}`);
-  const currentVal = data[category][idx];
-  const card = textEl.closest('.item-card');
+function startEdit(category, id){
+  const textEl = document.getElementById(`text-${category}-${id}`);
+  const item = data[category].find(it => it.id === id);
+  if(!item) return;
 
   textEl.outerHTML = `
     <div>
-      <textarea class="edit-input" id="edit-${category}-${idx}">${escapeHtml(currentVal)}</textarea>
+      <textarea class="edit-input" id="edit-${category}-${id}">${escapeHtml(item.content)}</textarea>
       <div class="edit-confirm">
-        <button class="save-btn" onclick="confirmEdit('${category}', ${idx})">保存</button>
+        <button class="save-btn" onclick="confirmEdit('${category}', ${id})">保存</button>
         <button class="cancel-btn" onclick="render('${category}')">取消</button>
       </div>
     </div>
   `;
-  document.getElementById(`edit-${category}-${idx}`).focus();
+  document.getElementById(`edit-${category}-${id}`).focus();
 }
 
-function confirmEdit(category, idx){
-  const newVal = document.getElementById(`edit-${category}-${idx}`).value.trim();
-  if(newVal){
-    data[category][idx] = newVal;
-    saveData();
+async function confirmEdit(category, id){
+  const newVal = document.getElementById(`edit-${category}-${id}`).value.trim();
+  if(!newVal){ render(category); return; }
+  try{
+    await remoteUpdate(id, newVal);
+    const item = data[category].find(it => it.id === id);
+    if(item) item.content = newVal;
+    render(category);
+    showToast('已保存');
+  }catch(err){
+    console.error(err);
+    showToast('保存失败，请检查网络', true);
+    render(category);
   }
-  render(category);
 }
 
-renderAll();
+/* ============ 初始加载 ============ */
+fetchAll();
+
+// 每次切回这个页面/标签时自动刷新一次，保证看到其他设备的最新修改
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible'){
+    fetchAll();
+  }
+});
 </script>
 </body>
 </html>
