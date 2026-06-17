@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>淼淼小档案</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Zhi+Mang+Xing&family=Noto+Sans+SC:wght@300;400;500;600&display=swap');
+
+  :root{
+    --paper: #f6f0e4;
+    --paper-deep: #efe5d2;
+    --ink: #2e2a24;
+    --ink-soft: #6b6256;
+    --plum: #8a3b46;
+    --plum-deep: #6c2c36;
+    --gold: #b08a3e;
+    --sage: #5f7a5e;
+    --line: #d8c9a8;
+    --card: #fffdf8;
+    --danger: #a8473f;
+    --danger-bg: #f6e3df;
+    --shadow: rgba(60, 45, 20, 0.18);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+
+  body{
+    background: var(--paper);
+    background-image:
+      radial-gradient(circle at 15% 20%, rgba(176,138,62,0.06), transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(138,59,70,0.05), transparent 40%);
+    font-family: 'Noto Sans SC', sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 32px 16px 80px;
+  }
+
+  .wrap{
+    max-width: 880px;
+    margin: 0 auto;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    text-align:center;
+    margin-bottom: 36px;
+    position: relative;
+  }
+  .seal{
+    display:inline-block;
+    font-family:'Zhi Mang Xing', cursive;
+    font-size: 15px;
+    color: var(--plum);
+    border: 1.5px solid var(--plum);
+    border-radius: 4px;
+    padding: 2px 8px;
+    transform: rotate(-4deg);
+    margin-bottom: 10px;
+    opacity:0.85;
+  }
+  h1{
+    font-family:'Noto Serif SC', serif;
+    font-weight:700;
+    font-size: clamp(32px, 6vw, 46px);
+    margin: 0;
+    letter-spacing: 0.08em;
+    color: var(--ink);
+  }
+  h1 span{
+    color: var(--plum);
+  }
+  .subtitle{
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 8px;
+    letter-spacing: 0.15em;
+  }
+  .dates-row{
+    display:flex;
+    justify-content:center;
+    gap: 14px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+  }
+  .date-chip{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 16px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    box-shadow: 0 2px 6px var(--shadow);
+  }
+  .date-chip b{ color: var(--plum); font-weight:600; }
+
+  /* ---------- Section layout ---------- */
+  .section{
+    margin-bottom: 28px;
+  }
+  .section-head{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .section-head .icon{
+    font-size: 18px;
+    width: 34px; height:34px;
+    border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+    background: var(--card);
+    border: 1px solid var(--line);
+    flex-shrink:0;
+  }
+  .section-head h2{
+    font-family:'Noto Serif SC', serif;
+    font-size: 18px;
+    font-weight:600;
+    margin:0;
+    color: var(--ink);
+  }
+  .section-head .count{
+    font-size:12px;
+    color: var(--ink-soft);
+    background: var(--paper-deep);
+    border-radius:999px;
+    padding: 2px 9px;
+  }
+  .section-head .add-btn{
+    margin-left:auto;
+    border:1px dashed var(--gold);
+    background: transparent;
+    color: var(--gold);
+    font-size:12px;
+    border-radius: 999px;
+    padding: 5px 12px;
+    cursor:pointer;
+    transition: all .15s ease;
+    font-family:'Noto Sans SC', sans-serif;
+  }
+  .section-head .add-btn:hover{
+    background: var(--gold);
+    color: #fff;
+  }
+
+  .card-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 12px;
+  }
+
+  .item-card{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+    position: relative;
+    box-shadow: 0 2px 8px var(--shadow);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .item-card:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px var(--shadow);
+  }
+  .item-card .item-text{
+    font-size: 14px;
+    line-height: 1.55;
+    padding-right: 46px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .item-card .item-actions{
+    position:absolute;
+    top:10px; right:10px;
+    display:flex;
+    gap: 6px;
+  }
+  .item-card .ic-btn{
+    width: 22px; height:22px;
+    border:none;
+    background: transparent;
+    color: var(--ink-soft);
+    cursor:pointer;
+    font-size: 13px;
+    border-radius:5px;
+    display:flex; align-items:center; justify-content:center;
+    transition: background .15s ease;
+  }
+  .item-card .ic-btn:hover{ background: var(--paper-deep); }
+  .item-card .ic-btn.del:hover{ color: var(--danger); background: var(--danger-bg); }
+  .item-card .ic-btn.edit:hover{ color: var(--gold); }
+
+  .item-card textarea.edit-input{
+    width:100%;
+    font-family:'Noto Sans SC', sans-serif;
+    font-size:14px;
+    line-height:1.5;
+    border:1px solid var(--gold);
+    border-radius:6px;
+    padding:6px 8px;
+    resize:vertical;
+    min-height:50px;
+    background:#fffef9;
+  }
+  .item-card .edit-confirm{
+    display:flex; gap:6px; margin-top:6px;
+  }
+  .item-card .edit-confirm button{
+    font-size:12px;
+    border:none;
+    border-radius:6px;
+    padding:4px 10px;
+    cursor:pointer;
+    font-family:'Noto Sans SC', sans-serif;
+  }
+  .save-btn{ background: var(--sage); color:#fff; }
+  .cancel-btn{ background: var(--paper-deep); color: var(--ink-soft); }
+
+  /* like type variant */
+  .item-card.like{ border-left: 3px solid var(--sage); }
+  .item-card.dislike{ border-left: 3px solid var(--danger); background: linear-gradient(to right, var(--danger-bg) 0%, var(--card) 14%); }
+  .item-card.neutral{ border-left: 3px solid var(--gold); }
+
+  .empty-hint{
+    color: var(--ink-soft);
+    font-size: 13px;
+    font-style: italic;
+    padding: 10px 4px;
+  }
+
+  /* add form */
+  .add-form{
+    display:none;
+    margin-top: 10px;
+    background: var(--paper-deep);
+    border-radius: 10px;
+    padding: 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .add-form.open{ display:flex; }
+  .add-form textarea{
+    flex:1;
+    min-width: 200px;
+    font-family:'Noto Sans SC', sans-serif;
+    font-size:14px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:8px 10px;
+    resize:vertical;
+    min-height: 40px;
+    background:#fffef9;
+  }
+  .add-form button{
+    border:none;
+    border-radius:6px;
+    padding:0 16px;
+    cursor:pointer;
+    background: var(--plum);
+    color:#fff;
+    font-family:'Noto Sans SC', sans-serif;
+    font-size:13px;
+  }
+
+  /* dislike section special bg */
+  .danger-zone{
+    border: 1px solid #e3c2bc;
+    background: linear-gradient(135deg, #fbf3f1, #f6f0e4 60%);
+    border-radius: 14px;
+    padding: 16px;
+  }
+
+  /* sticky note style for misc */
+  .note-card{
+    background: #fff9e0;
+    border: 1px solid #e8dca0;
+    transform: rotate(var(--rot, 0deg));
+  }
+
+  footer{
+    text-align:center;
+    margin-top: 50px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    letter-spacing: 0.08em;
+  }
+  footer .brush{
+    font-family:'Zhi Mang Xing', cursive;
+    font-size: 16px;
+    color: var(--plum);
+    display:block;
+    margin-bottom:4px;
+  }
+
+  @media (max-width: 480px){
+    .card-grid{ grid-template-columns: 1fr; }
+    h1{ letter-spacing: 0.04em; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="seal">私藏 · 备忘</div>
+    <h1>淼<span>淼</span>小档案</h1>
+    <div class="subtitle">悄悄记下，慢慢靠近</div>
+    <div class="dates-row" id="birthdayRow">
+      <!-- filled by JS -->
+    </div>
+  </header>
+
+  <!-- 喜欢 -->
+  <div class="section">
+    <div class="section-head">
+      <div class="icon">💚</div>
+      <h2>她喜欢的</h2>
+      <span class="count" id="count-like">0</span>
+      <button class="add-btn" onclick="toggleForm('like')">+ 添加</button>
+    </div>
+    <div class="add-form" id="form-like">
+      <textarea id="input-like" placeholder="例如：喜欢吃小龙虾"></textarea>
+      <button onclick="addItem('like')">保存</button>
+    </div>
+    <div class="card-grid" id="list-like"></div>
+  </div>
+
+  <!-- 雷点 / 不喜欢 -->
+  <div class="section">
+    <div class="section-head">
+      <div class="icon">⚠️</div>
+      <h2>雷点 · 不喜欢</h2>
+      <span class="count" id="count-dislike">0</span>
+      <button class="add-btn" onclick="toggleForm('dislike')">+ 添加</button>
+    </div>
+    <div class="add-form" id="form-dislike">
+      <textarea id="input-dislike" placeholder="例如：不喜欢烟味"></textarea>
+      <button onclick="addItem('dislike')">保存</button>
+    </div>
+    <div class="danger-zone">
+      <div class="card-grid" id="list-dislike"></div>
+    </div>
+  </div>
+
+  <!-- 宠物 -->
+  <div class="section">
+    <div class="section-head">
+      <div class="icon">🐱</div>
+      <h2>家里的小猫</h2>
+      <span class="count" id="count-pet">0</span>
+      <button class="add-btn" onclick="toggleForm('pet')">+ 添加</button>
+    </div>
+    <div class="add-form" id="form-pet">
+      <textarea id="input-pet" placeholder="例如：蓝猫(12岁)：李灰灰"></textarea>
+      <button onclick="addItem('pet')">保存</button>
+    </div>
+    <div class="card-grid" id="list-pet"></div>
+  </div>
+
+  <!-- 行程 / 计划 -->
+  <div class="section">
+    <div class="section-head">
+      <div class="icon">📍</div>
+      <h2>行程 · 计划</h2>
+      <span class="count" id="count-plan">0</span>
+      <button class="add-btn" onclick="toggleForm('plan')">+ 添加</button>
+    </div>
+    <div class="add-form" id="form-plan">
+      <textarea id="input-plan" placeholder="例如：6.23号去徐州"></textarea>
+      <button onclick="addItem('plan')">保存</button>
+    </div>
+    <div class="card-grid" id="list-plan"></div>
+  </div>
+
+  <!-- 去过的地方 -->
+  <div class="section">
+    <div class="section-head">
+      <div class="icon">🗺️</div>
+      <h2>去过的地方</h2>
+      <span class="count" id="count-places">0</span>
+      <button class="add-btn" onclick="toggleForm('places')">+ 添加</button>
+    </div>
+    <div class="add-form" id="form-places">
+      <textarea id="input-places" placeholder="例如：黑龙江"></textarea>
+      <button onclick="addItem('places')">保存</button>
+    </div>
+    <div class="card-grid" id="list-places"></div>
+  </div>
+
+  <!-- 其他备忘 -->
+  <div class="section">
+    <div class="section-head">
+      <div class="icon">📝</div>
+      <h2>其他小事</h2>
+      <span class="count" id="count-misc">0</span>
+      <button class="add-btn" onclick="toggleForm('misc')">+ 添加</button>
+    </div>
+    <div class="add-form" id="form-misc">
+      <textarea id="input-misc" placeholder="例如：6.17耳机坏了(应该是蓝牙耳机)"></textarea>
+      <button onclick="addItem('misc')">保存</button>
+    </div>
+    <div class="card-grid" id="list-misc"></div>
+  </div>
+
+  <footer>
+    <span class="brush">愿你被温柔以待</span>
+    数据保存在本设备浏览器中，刷新不会丢失
+  </footer>
+
+</div>
+
+<script>
+const STORAGE_KEY = 'miaomiao_profile_v1';
+
+const DEFAULT_DATA = {
+  birthday: { solar: '阳历 6.15', lunar: '农历 5.2' },
+  like: [
+    '喜辣',
+    '粉贾斯汀比伯',
+    '暑假准备爬黄山',
+    '一点点至尊系列：最爱可可芭蕾（少糖，最多5分糖）',
+    '喜欢吃小龙虾',
+    '喜欢做饭，有个朋友做饭非常好吃',
+    '喜欢吃咸蛋黄肉粽、枣粽、豆沙粽',
+    '超喜欢抓娃娃',
+    '爱吃香菜'
+  ],
+  dislike: [
+    '不喜欢吃海鲜',
+    '不喜欢烟味',
+    '不吃芒果'
+  ],
+  pet: [
+    '蓝猫(12岁)：李灰灰',
+    '银渐层(3岁)：李富贵'
+  ],
+  plan: [
+    '6.23号去徐州',
+    '暑假准备爬黄山'
+  ],
+  places: [
+    '黑龙江',
+    '新疆',
+    '北京',
+    '天津'
+  ],
+  misc: [
+    '酒量少，叔叔奶奶喝的多，阿姨喝的少',
+    '6.17耳机坏了(应该是蓝牙耳机)'
+  ]
+};
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){ console.warn('load failed', e); }
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+
+function saveData(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+let data = loadData();
+
+function renderBirthday(){
+  const row = document.getElementById('birthdayRow');
+  row.innerHTML = `
+    <div class="date-chip">🎂 <b>${escapeHtml(data.birthday.solar)}</b></div>
+    <div class="date-chip">🌙 <b>${escapeHtml(data.birthday.lunar)}</b></div>
+  `;
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+const CATEGORY_CLASS = {
+  like: 'like',
+  dislike: 'dislike',
+  pet: 'neutral',
+  plan: 'neutral',
+  places: 'neutral',
+  misc: 'note-card'
+};
+
+function render(category){
+  const listEl = document.getElementById('list-' + category);
+  const countEl = document.getElementById('count-' + category);
+  const items = data[category] || [];
+  countEl.textContent = items.length;
+
+  if(items.length === 0){
+    listEl.innerHTML = '<div class="empty-hint">还没有记录，点击上方"+ 添加"试试</div>';
+    return;
+  }
+
+  listEl.innerHTML = items.map((text, idx) => {
+    const cls = CATEGORY_CLASS[category] || '';
+    const rot = category === 'misc' ? (idx % 2 === 0 ? '-0.6deg' : '0.6deg') : '0deg';
+    return `
+      <div class="item-card ${cls}" style="--rot:${rot}" data-cat="${category}" data-idx="${idx}">
+        <div class="item-text" id="text-${category}-${idx}">${escapeHtml(text)}</div>
+        <div class="item-actions">
+          <button class="ic-btn edit" title="编辑" onclick="startEdit('${category}', ${idx})">✎</button>
+          <button class="ic-btn del" title="删除" onclick="deleteItem('${category}', ${idx})">✕</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderAll(){
+  renderBirthday();
+  Object.keys(CATEGORY_CLASS).forEach(render);
+}
+
+function toggleForm(category){
+  const form = document.getElementById('form-' + category);
+  form.classList.toggle('open');
+  if(form.classList.contains('open')){
+    document.getElementById('input-' + category).focus();
+  }
+}
+
+function addItem(category){
+  const input = document.getElementById('input-' + category);
+  const val = input.value.trim();
+  if(!val) return;
+  if(!data[category]) data[category] = [];
+  data[category].push(val);
+  saveData();
+  input.value = '';
+  document.getElementById('form-' + category).classList.remove('open');
+  render(category);
+}
+
+function deleteItem(category, idx){
+  if(!confirm('确定要删除这条记录吗？')) return;
+  data[category].splice(idx, 1);
+  saveData();
+  render(category);
+}
+
+function startEdit(category, idx){
+  const textEl = document.getElementById(`text-${category}-${idx}`);
+  const currentVal = data[category][idx];
+  const card = textEl.closest('.item-card');
+
+  textEl.outerHTML = `
+    <div>
+      <textarea class="edit-input" id="edit-${category}-${idx}">${escapeHtml(currentVal)}</textarea>
+      <div class="edit-confirm">
+        <button class="save-btn" onclick="confirmEdit('${category}', ${idx})">保存</button>
+        <button class="cancel-btn" onclick="render('${category}')">取消</button>
+      </div>
+    </div>
+  `;
+  document.getElementById(`edit-${category}-${idx}`).focus();
+}
+
+function confirmEdit(category, idx){
+  const newVal = document.getElementById(`edit-${category}-${idx}`).value.trim();
+  if(newVal){
+    data[category][idx] = newVal;
+    saveData();
+  }
+  render(category);
+}
+
+renderAll();
+</script>
+</body>
+</html>
