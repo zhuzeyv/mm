@@ -349,10 +349,125 @@
     .card-grid{ grid-template-columns: 1fr; }
     h1{ letter-spacing: 0.04em; }
   }
+
+  /* ---------- 密码锁屏 ---------- */
+  #lockScreen{
+    position: fixed;
+    inset: 0;
+    background: var(--paper);
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(176,138,62,0.08), transparent 45%),
+      radial-gradient(circle at 80% 70%, rgba(138,59,70,0.07), transparent 45%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 24px;
+  }
+  #lockScreen .lock-box{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 40px 36px 36px;
+    max-width: 360px;
+    width: 100%;
+    box-shadow: 0 8px 32px var(--shadow);
+    text-align: center;
+  }
+  #lockScreen .lock-icon{
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+  #lockScreen h2{
+    font-family: 'Noto Serif SC', serif;
+    font-size: 22px;
+    margin: 0 0 6px;
+    color: var(--ink);
+  }
+  #lockScreen p{
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0 0 24px;
+  }
+  #lockScreen input{
+    width: 100%;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 18px;
+    text-align: center;
+    letter-spacing: 0.3em;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 16px;
+    background: var(--paper);
+    color: var(--ink);
+    outline: none;
+    transition: border-color .2s;
+  }
+  #lockScreen input:focus{ border-color: var(--plum); }
+  #lockScreen input.shake{
+    animation: shake .4s ease;
+    border-color: var(--danger);
+  }
+  @keyframes shake{
+    0%,100%{ transform: translateX(0); }
+    20%{ transform: translateX(-8px); }
+    40%{ transform: translateX(8px); }
+    60%{ transform: translateX(-5px); }
+    80%{ transform: translateX(5px); }
+  }
+  #lockScreen button{
+    margin-top: 16px;
+    width: 100%;
+    background: var(--plum);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 13px;
+    font-size: 15px;
+    font-family: 'Noto Sans SC', sans-serif;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  #lockScreen button:hover{ background: var(--plum-deep); }
+  #lockScreen .err-hint{
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--danger);
+    min-height: 18px;
+  }
+  #lockScreen .seal-lock{
+    display: inline-block;
+    font-family: 'Zhi Mang Xing', cursive;
+    font-size: 13px;
+    color: var(--plum);
+    border: 1px solid var(--plum);
+    border-radius: 4px;
+    padding: 1px 7px;
+    opacity: 0.7;
+    margin-bottom: 18px;
+    transform: rotate(-3deg);
+  }
+  body.locked{ overflow: hidden; }
 </style>
 </head>
-<body>
-<div class="wrap">
+<body class="locked">
+
+<!-- 密码锁屏 -->
+<div id="lockScreen">
+  <div class="lock-box">
+    <div class="seal-lock">私藏 · 加密</div>
+    <div class="lock-icon">🔒</div>
+    <h2>淼淼小档案</h2>
+    <p>请输入安全码后查看</p>
+    <input type="password" id="lockInput" placeholder="输入安全码" maxlength="20"
+      onkeydown="if(event.key==='Enter') checkPassword()" />
+    <button onclick="checkPassword()">进入</button>
+    <div class="err-hint" id="errHint"></div>
+  </div>
+</div>
+
+<div class="wrap" id="mainContent" style="display:none">
 
   <div class="sync-bar" id="syncBar">
     <span class="sync-dot" id="syncDot"></span>
@@ -471,6 +586,38 @@
 <div class="toast" id="toast"></div>
 
 <script>
+/* ============ 密码保护 ============ */
+// ★ 在这里修改你的安全码 ★
+const PASSWORD = '0615';
+const SESSION_KEY = 'mm_unlocked';
+
+function checkPassword(){
+  const input = document.getElementById('lockInput');
+  const hint  = document.getElementById('errHint');
+  if(input.value === PASSWORD){
+    sessionStorage.setItem(SESSION_KEY, '1');
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('mainContent').style.display = '';
+    document.body.classList.remove('locked');
+    fetchAll();
+  } else {
+    hint.textContent = '安全码不正确，请重试';
+    input.classList.add('shake');
+    input.value = '';
+    setTimeout(() => input.classList.remove('shake'), 500);
+  }
+}
+
+// 本次会话已解锁则直接跳过锁屏
+if(sessionStorage.getItem(SESSION_KEY) === '1'){
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('mainContent').style.display = '';
+    document.body.classList.remove('locked');
+    fetchAll();
+  });
+}
+
 /* ============ Supabase 连接配置 ============ */
 const SUPABASE_URL = 'https://vlbdguleovswmchypadd.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_OEL6dIn9SIE1efzGPP99qA_qGD2nE_9';
@@ -551,7 +698,7 @@ async function remoteAdd(category, content){
   const res = await fetch(REST_URL, {
     method: 'POST',
     headers: { ...HEADERS, 'Prefer': 'return=representation' },
-    body: JSON.stringify({ category, content, sort_order: Date.now() })
+    body: JSON.stringify({ category, content, sort_order: Date.now() % 2000000000 })
   });
   if(!res.ok) throw new Error('HTTP ' + res.status);
   const rows = await res.json();
@@ -683,7 +830,7 @@ async function confirmEdit(category, id){
 }
 
 /* ============ 初始加载 ============ */
-fetchAll();
+// fetchAll 由解锁后触发，锁屏状态下不加载数据
 
 // 每次切回这个页面/标签时自动刷新一次，保证看到其他设备的最新修改
 document.addEventListener('visibilitychange', () => {
