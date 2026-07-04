@@ -449,6 +449,53 @@
     transform: rotate(-3deg);
   }
   body.locked{ overflow: hidden; }
+
+  /* ---------- 纪念日卡片 ---------- */
+  .anniversary-wrap{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+  @media(max-width: 500px){ .anniversary-wrap{ grid-template-columns: 1fr; } }
+  .ann-card{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px var(--shadow);
+    text-align: center;
+  }
+  .ann-card .ann-header{
+    padding: 10px 16px;
+    font-family: "Noto Serif SC", serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 0.05em;
+  }
+  .ann-card.meet .ann-header{ background: linear-gradient(135deg, #b08a3e, #c9a55a); }
+  .ann-card.together .ann-header{ background: linear-gradient(135deg, #8a3b46, #b05060); }
+  .ann-card .ann-body{ padding: 20px 16px 18px; }
+  .ann-card .ann-days{
+    font-family: "Noto Serif SC", serif;
+    font-size: 62px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .ann-card.meet .ann-days{ color: var(--gold); }
+  .ann-card.together .ann-days{ color: var(--plum); }
+  .ann-card .ann-label{ font-size: 13px; color: var(--ink-soft); margin-bottom: 12px; }
+  .ann-card .ann-since{
+    font-size: 11px;
+    color: var(--ink-soft);
+    background: var(--paper-deep);
+    border-radius: 999px;
+    padding: 3px 12px;
+    display: inline-block;
+  }
+
 </style>
 </head>
 <body class="locked">
@@ -483,6 +530,27 @@
       <div class="date-chip">🌙 <b>农历 5.2</b></div>
     </div>
   </header>
+
+
+  <!-- 纪念日计数 -->
+  <div class="anniversary-wrap">
+    <div class="ann-card meet">
+      <div class="ann-header">🌸 相识已经</div>
+      <div class="ann-body">
+        <div class="ann-days" id="meetDays">-</div>
+        <div class="ann-label">天</div>
+        <div class="ann-since">起始日：2026.6.13</div>
+      </div>
+    </div>
+    <div class="ann-card together">
+      <div class="ann-header">💕 在一起第</div>
+      <div class="ann-body">
+        <div class="ann-days" id="togetherDays">-</div>
+        <div class="ann-label">天</div>
+        <div class="ann-since">起始日：2026.7.4</div>
+      </div>
+    </div>
+  </div>
 
   <!-- 喜欢 -->
   <div class="section">
@@ -586,9 +654,25 @@
 <div class="toast" id="toast"></div>
 
 <script>
+
+/* ============ 纪念日计数 ============ */
+function calcDays(startDateStr){
+  const start = new Date(startDateStr);
+  start.setHours(0,0,0,0);
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const diff = Math.floor((today - start) / (1000 * 60 * 60 * 24)) + 1;
+  return diff > 0 ? diff : 0;
+}
+
+function renderAnniversary(){
+  document.getElementById('meetDays').textContent = calcDays('2026-06-13');
+  document.getElementById('togetherDays').textContent = calcDays('2026-07-04');
+}
+
 /* ============ 密码保护 ============ */
 // ★ 在这里修改你的安全码 ★
-const PASSWORD = '0615';
+const PASSWORD = '你的安全码';
 const SESSION_KEY = 'mm_unlocked';
 
 function checkPassword(){
@@ -599,6 +683,7 @@ function checkPassword(){
     document.getElementById('lockScreen').style.display = 'none';
     document.getElementById('mainContent').style.display = '';
     document.body.classList.remove('locked');
+    renderAnniversary();
     fetchAll();
   } else {
     hint.textContent = '安全码不正确，请重试';
@@ -614,6 +699,7 @@ if(sessionStorage.getItem(SESSION_KEY) === '1'){
     document.getElementById('lockScreen').style.display = 'none';
     document.getElementById('mainContent').style.display = '';
     document.body.classList.remove('locked');
+    renderAnniversary();
     fetchAll();
   });
 }
