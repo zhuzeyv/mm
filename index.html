@@ -670,40 +670,6 @@ function renderAnniversary(){
   document.getElementById('togetherDays').textContent = calcDays('2026-07-04');
 }
 
-/* ============ 密码保护 ============ */
-// ★ 在这里修改你的安全码 ★
-const PASSWORD = '0615';
-const SESSION_KEY = 'mm_unlocked';
-
-function checkPassword(){
-  const input = document.getElementById('lockInput');
-  const hint  = document.getElementById('errHint');
-  if(input.value === PASSWORD){
-    sessionStorage.setItem(SESSION_KEY, '1');
-    document.getElementById('lockScreen').style.display = 'none';
-    document.getElementById('mainContent').style.display = '';
-    document.body.classList.remove('locked');
-    renderAnniversary();
-    fetchAll();
-  } else {
-    hint.textContent = '安全码不正确，请重试';
-    input.classList.add('shake');
-    input.value = '';
-    setTimeout(() => input.classList.remove('shake'), 500);
-  }
-}
-
-// 本次会话已解锁则直接跳过锁屏
-if(sessionStorage.getItem(SESSION_KEY) === '1'){
-  document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('lockScreen').style.display = 'none';
-    document.getElementById('mainContent').style.display = '';
-    document.body.classList.remove('locked');
-    renderAnniversary();
-    fetchAll();
-  });
-}
-
 /* ============ Supabase 连接配置 ============ */
 const SUPABASE_URL = 'https://vlbdguleovswmchypadd.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_OEL6dIn9SIE1efzGPP99qA_qGD2nE_9';
@@ -727,6 +693,63 @@ const CATEGORY_CLASS = {
 };
 
 // 本地数据缓存： { like: [{id, content}], dislike: [...], ... }
+
+/* ============ 密码保护（查数据库验证，前端不存密码） ============ */
+const SESSION_KEY = 'mm_unlocked';
+
+async function checkPassword(){
+  const input = document.getElementById('lockInput');
+  const hint  = document.getElementById('errHint');
+  const val   = input.value.trim();
+  if(!val) return;
+
+  const btn = document.querySelector('#lockScreen button');
+  btn.textContent = '验证中...';
+  btn.disabled = true;
+  hint.textContent = '';
+
+  try{
+    // 去数据库查 miaomiao_password 这个 key，比对用户输入
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/app_config?key=eq.miaomiao_password&value=eq.${encodeURIComponent(val)}&select=key`,
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+    );
+    const rows = await res.json();
+    if(rows.length > 0){
+      // 密码正确
+      sessionStorage.setItem(SESSION_KEY, '1');
+      document.getElementById('lockScreen').style.display = 'none';
+      document.getElementById('mainContent').style.display = '';
+      document.body.classList.remove('locked');
+      renderAnniversary();
+      fetchAll();
+    } else {
+      hint.textContent = '安全码不正确，请重试';
+      input.classList.add('shake');
+      input.value = '';
+      setTimeout(() => { input.classList.remove('shake'); input.focus(); }, 500);
+    }
+  } catch(err){
+    hint.textContent = '网络错误，请稍后重试';
+    console.error(err);
+  } finally {
+    btn.textContent = '进入';
+    btn.disabled = false;
+  }
+}
+
+// 本次会话已解锁则直接跳过锁屏
+if(sessionStorage.getItem(SESSION_KEY) === '1'){
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('mainContent').style.display = '';
+    document.body.classList.remove('locked');
+    renderAnniversary();
+    fetchAll();
+  });
+}
+
+
 let data = {};
 CATEGORIES.forEach(c => data[c] = []);
 
